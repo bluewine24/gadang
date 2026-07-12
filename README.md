@@ -5,6 +5,8 @@
 
 팀 프로젝트 · 2026.05 ~ 2026.06
 
+**팀원**: 고지혁 · 박찬형
+
 | 홈 — 추천 지역 탐색 | 지도 — 장소 탐색 | 일정 — 여행 코스 |
 |---|---|---|
 | ![홈 화면](images/screen_home.png) | ![지도 화면](images/screen_map.png) | ![여행 일정 화면](images/screen_itinerary.png) |
