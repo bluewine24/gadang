@@ -1,0 +1,33 @@
+/.metadata/
+**/application-local.properties
+frontend/.env.local
+.env
+.env.*
+!.env.example
+!frontend/.env.example
+
+# Logs and generated run outputs
+*.log
+result_*.txt
+result_*.json
+*.zip
+front_concept.html
+
+# Build and dependency outputs
+node_modules/
+dist/
+target/
+frontend/node_modules/
+frontend/dist/
+Backend/target/
+.venv/
+**/.venv/
+
+# Python caches
+__pycache__/
+**/__pycache__/
+*.py[cod]
+
+# Runtime uploads
+Backend/uploads/*
+!Backend/uploads/.gitkeep

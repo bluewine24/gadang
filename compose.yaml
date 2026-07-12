@@ -1,0 +1,85 @@
+name: gadang
+
+services:
+  db:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-gadang}
+      MYSQL_USER: ${MYSQL_USER:-ssafy}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-ssafy}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+      TZ: Asia/Seoul
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p$${MYSQL_ROOT_PASSWORD} --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+
+  ai-server:
+    build:
+      context: ./ai-server
+    restart: unless-stopped
+    environment:
+      GMS_KEY: ${GMS_KEY:-}
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./Backend
+    restart: unless-stopped
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/${MYSQL_DATABASE:-gadang}?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER:-ssafy}
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD:-ssafy}
+      RAG_BASE_URL: http://ai-server:8000
+      GADANG_BACKEND_URL: http://localhost:8080
+      GADANG_FRONTEND_URL: http://localhost:5173
+      JWT_SECRET: ${JWT_SECRET:-gadang-secret-key-for-development-only}
+      GADANG_ADMIN_EMAIL: ${GADANG_ADMIN_EMAIL:-admin@gadang.local}
+      GADANG_ADMIN_PASSWORD: ${GADANG_ADMIN_PASSWORD:-Admin1234!}
+      GADANG_ADMIN_NICKNAME: ${GADANG_ADMIN_NICKNAME:-admin}
+      KAKAO_REST_API_KEY: ${KAKAO_REST_API_KEY:-}
+      KAKAO_CLIENT_SECRET: ${KAKAO_CLIENT_SECRET:-}
+      ODSAY_API_KEY: ${ODSAY_API_KEY:-}
+      NAVER_CLIENT_ID: ${NAVER_CLIENT_ID:-}
+      NAVER_CLIENT_SECRET: ${NAVER_CLIENT_SECRET:-}
+      TOUR_API_KEY: ${TOUR_API_KEY:-}
+      DATAGO_API_KEY: ${DATAGO_API_KEY:-}
+      GMS_KEY: ${GMS_KEY:-disabled}
+    volumes:
+      - uploads:/app/uploads
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+      ai-server:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_BASE_URL: /api
+        VITE_KAKAO_MAP_KEY: ${KAKAO_JAVASCRIPT_KEY:-}
+        VITE_NAVER_CLIENT_ID: ${VITE_NAVER_CLIENT_ID:-}
+        VITE_KAKAO_CLIENT_ID: ${VITE_KAKAO_CLIENT_ID:-}
+    restart: unless-stopped
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+
+volumes:
+  mysql-data:
+  uploads:
